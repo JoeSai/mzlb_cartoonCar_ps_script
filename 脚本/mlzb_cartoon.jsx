@@ -346,10 +346,11 @@ function getLayerRect(layer) {
         var b = UnitValue(list[i]);
         rect.push(Math.round(b.as("px")))
     }
-    rect[0] = Math.max(rect[0], 0)
-    rect[1] = Math.max(rect[1], 0)
-    rect[2] = Math.min(rect[2], 787)
-    rect[3] = Math.min(rect[3], 1400)
+    // $.writeln("layer name  = " , layer.name , "   rect = " , rect)
+    // rect[0] = Math.max(rect[0], 0)
+    // rect[1] = Math.max(rect[1], 0)
+    // rect[2] = Math.min(rect[2], 787)
+    // rect[3] = Math.min(rect[3], 1400)
     return rect
 }
 /** 显示图层下所有的子图层 */
@@ -414,10 +415,10 @@ function scaleExport(inPath, inName, outPath, outName, maxSideLength) {
 function exportOneLayer(layer, outputDir, strOutputFile, hasRect) {
     layer.visible = true;
 
-    var rect = getLayerRect(layer);
-    var offsetX = -rect[0];
-    var offsetY = -rect[1];
-    layer.translate(offsetX, offsetY);
+    // var rect = getLayerRect(layer);
+    // var offsetX = -rect[0];
+    // var offsetY = -rect[1];
+    // layer.translate(offsetX, offsetY);
     if (outputDir) {
         exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer) : null);
     } else {
