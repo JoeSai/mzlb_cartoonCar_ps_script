@@ -182,6 +182,7 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             textIndex++;
         } else if (curLy.name.indexOf("mask") >= 0) {
             app.activeDocument.activeLayer = curLy;
+            
             var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/mask";
             var rect = getLayerRect(curLy);
 
@@ -418,7 +419,7 @@ function exportOneLayer(layer, outputDir, strOutputFile, hasRect) {
     // var rect = getLayerRect(layer);
     // var offsetX = -rect[0];
     // var offsetY = -rect[1];
-    // layer.translate(offsetX, offsetY);
+    layer.translate(0, 0);
     if (outputDir) {
         exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer) : null);
     } else {
