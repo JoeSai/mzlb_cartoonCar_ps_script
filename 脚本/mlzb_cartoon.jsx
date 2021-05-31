@@ -104,7 +104,6 @@ function exportPage(mainPageLys, typeName) {
 
 function exportPageDetail(curPageLys, typeName, pageIndex) {
     var dir = outputDir() + typeName + "_" + (pageIndex + 1);
-    var rect = getLayerRect(curPageLys);
     exportOneLayer(curPageLys, dir, "detail" + ".jpg", true);
 }
 
@@ -182,11 +181,11 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             textIndex++;
         } else if (curLy.name.indexOf("mask") >= 0) {
             app.activeDocument.activeLayer = curLy;
-            
+
             var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/mask";
             var rect = getLayerRect(curLy);
 
-            exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png", true);
+            exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png");
 
             app.doAction("描边", "MLZB.atn");
 
@@ -194,7 +193,7 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
                 maskBlockJson += ",";
             }
 
-            exportOneLayer(curLy, dir, maskBlockIndex + ".png", true);
+            exportOneLayer(curLy, dir, maskBlockIndex + ".png");
 
             maskBlockJson = maskBlockJson + "\"" + maskBlockIndex + "\"" + ":{" + "\"" + "rect" + "\"" + ":[" + rect + "]}";
             maskBlockIndex++;
@@ -209,7 +208,7 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
 
             // exportOneLayer(curLy, dir, curLy.name + ".png", true);
 
-            exportOneLayer(curLy, dir, "zc.png", true);
+            exportOneLayer(curLy, dir, "zc.png");
             scaleExport(dir, "zc.png", dir, "icon.png", 200);
         }
     }
@@ -338,7 +337,7 @@ function clearMask(lys) {
 }
 
 /** ------------------------------------------------基础函数------------------------------------------------------- */
-function getLayerRect(layer) {
+function getLayerRect(layer, isLimit) {
     var bounds = layer.bounds + "";
     var list = bounds.split(",");
 
@@ -346,6 +345,12 @@ function getLayerRect(layer) {
     for (var i = 0; i < list.length; i++) {
         var b = UnitValue(list[i]);
         rect.push(Math.round(b.as("px")))
+    }
+    if (isLimit) {
+        rect[0] = Math.max(rect[0], 0)
+        rect[1] = Math.max(rect[1], 0)
+        rect[2] = Math.min(rect[2], 787)
+        rect[3] = Math.min(rect[3], 1400)
     }
     // $.writeln("layer name  = " , layer.name , "   rect = " , rect)
     // rect[0] = Math.max(rect[0], 0)
@@ -421,9 +426,9 @@ function exportOneLayer(layer, outputDir, strOutputFile, hasRect) {
     // var offsetY = -rect[1];
     layer.translate(0, 0);
     if (outputDir) {
-        exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer) : null);
+        exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer , hasRect) : getLayerRect(layer));
     } else {
-        exportDocument(outputDir(), strOutputFile, hasRect ? getLayerRect(layer) : null);
+        exportDocument(outputDir(), strOutputFile, hasRect ? getLayerRect(layer , hasRect) : getLayerRect(layer));
     }
 
     layer.visible = false;
