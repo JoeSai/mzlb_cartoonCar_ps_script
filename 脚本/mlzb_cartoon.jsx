@@ -187,6 +187,11 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
 
             exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png");
 
+            app.doAction("导出选中图", "MLZB.atn");
+            exportOneLayer(curLy, dir, "select_" + maskBlockIndex + ".png");
+            app.doAction("导出未选中图", "MLZB.atn");
+            exportOneLayer(curLy, dir, "unselect_" + maskBlockIndex + ".png");
+
             app.doAction("描边", "MLZB.atn");
 
             if (maskBlockIndex > 1) {
@@ -426,9 +431,9 @@ function exportOneLayer(layer, outputDir, strOutputFile, hasRect) {
     // var offsetY = -rect[1];
     layer.translate(0, 0);
     if (outputDir) {
-        exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer , hasRect) : getLayerRect(layer));
+        exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer, hasRect) : getLayerRect(layer));
     } else {
-        exportDocument(outputDir(), strOutputFile, hasRect ? getLayerRect(layer , hasRect) : getLayerRect(layer));
+        exportDocument(outputDir(), strOutputFile, hasRect ? getLayerRect(layer, hasRect) : getLayerRect(layer));
     }
 
     layer.visible = false;
