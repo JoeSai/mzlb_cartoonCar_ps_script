@@ -1,7 +1,7 @@
 ﻿const CONFIG = {
     layerSetsType: {
-        indexPage: "首页",
-        endPage: "尾页",
+        indexPage: "封面",
+        endPage: "封底",
         mainPage: "正文"
     },
 }
@@ -35,71 +35,102 @@ function exportTemplate(document) {
         switch (allLys[i].name) {
             case CONFIG.layerSetsType.indexPage:
                 indexPageLys = allLys[i];
+                indexPageLys && (indexPageLys.visible = false);
                 break;
             case CONFIG.layerSetsType.mainPage:
                 mainPageLys = allLys[i];
+                mainPageLys && (mainPageLys.visible = false);
                 break;
             case CONFIG.layerSetsType.endPage:
                 endPageLys = allLys[i];
+                endPageLys && (endPageLys.visible = false);
                 break;
             default:
                 break;
         }
     }
 
-    exportPage(indexPageLys, "index");
-    exportPage(mainPageLys, "main");
-    exportPage(endPageLys, "end");
+    if (confirm("导出封面 ?")) {
+        exportPage(indexPageLys, "index");
+    }
+    if (confirm("导出正文 ?")) {
+        exportPage(mainPageLys, "main");
+    }
+    if (confirm("导出封底 ?")) {
+        exportPage(endPageLys, "end");
+    }
 }
 
 
 function exportPage(mainPageLys, typeName) {
-    // $.writeln("正文组" , mainPageLys);
+    $.writeln("正文组", mainPageLys);
+    if (!mainPageLys) {
+        return;
+    }
+    mainPageLys.visible = true;
     var pageLys = mainPageLys.layerSets;
     var curPageLys;
     var curMaskLys;
     var curLy;
 
-
     if (pageLys.length == 0) {
+        alert("每页需要一个单独的图层组！");
         return;
     }
-    hideLayer(pageLys);
+    if (typeName == "main") {
+        hideLayer(pageLys);
 
-    for (var pageIndex = 0; pageIndex < pageLys.length; pageIndex++) {
-        curPageLys = pageLys[pageIndex];
+        for (var pageIndex = 0; pageIndex < pageLys.length; pageIndex++) {
+            curPageLys = pageLys[pageIndex];
 
-        showLayer(curPageLys);
-        exportPageDetail(curPageLys, typeName, pageIndex);
-        hideLayer(curPageLys);
+            showLayer(curPageLys);
+            exportPageDetail(curPageLys, typeName, pageIndex);
+            hideLayer(curPageLys);
 
-        curPageLys.visible = true;
+            curPageLys.visible = true;
 
-        var keyMap = {};
-        var repeatMap = {};
-        var textIndex = 0;
+            var keyMap = {};
+            var repeatMap = {};
+            var textIndex = 0;
 
-        maskBlockIndex = 1;
-        maskBlockJson = "{";
+            maskBlockIndex = 1;
+            maskBlockJson = "{";
 
-        for (var maskIndex = 0; maskIndex < curPageLys.layerSets.length; maskIndex++) {
+            for (var maskIndex = 0; maskIndex < curPageLys.layerSets.length; maskIndex++) {
 
-            var curMaskLys = curPageLys.layerSets[maskIndex];
+                var curMaskLys = curPageLys.layerSets[maskIndex];
 
-            //去除蒙版
-            clearMask(curMaskLys);
-            hideLayer(curMaskLys)
-            curMaskLys.visible = true;
+                //去除蒙版
+                clearMask(curMaskLys);
+                hideLayer(curMaskLys)
+                curMaskLys.visible = true;
 
-            exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, maskIndex, typeName)
+                exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, maskIndex, typeName)
+            }
+
+            maskBlockJson += "}";
+            var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/mask";
+            exportJson(dir, "rect.json", maskBlockJson)
+            exportRepeatJson(repeatMap, pageIndex, typeName);
         }
+    } else {
+        hideLayer(pageLys);
+        for (var pageIndex = 0; pageIndex < pageLys.length; pageIndex++) {
+            curPageLys = pageLys[pageIndex];
+            showLayer(curPageLys);
+            exportPageDetail(curPageLys, typeName, pageIndex);
+            hideLayer(curPageLys);
+            curPageLys.visible = true;
 
-        maskBlockJson += "}";
-        var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/mask";
-        exportJson(dir, "rect.json", maskBlockJson)
-        exportRepeatJson(repeatMap, pageIndex, typeName);
-
+            var textIndex = 0;
+            var keyMap = {};
+            var repeatMap = {};
+            exportOneCover(curPageLys, textIndex, keyMap, repeatMap, pageIndex, typeName);
+            exportRepeatJson(repeatMap, pageIndex, typeName);
+        }
     }
+
+    mainPageLys.visible = false;
 }
 
 function exportPageDetail(curPageLys, typeName, pageIndex) {
@@ -133,6 +164,70 @@ function exportRepeatJson(repeatMap, pageIndex, typeName) {
     var rpj_dir = outputDir() + typeName + "_" + (pageIndex + 1);
     exportJson(rpj_dir, "repeat.json", repeat_jsonStr);
 }
+
+function exportOneCover(curPageLys, textIndex, keyMap, repeatMap, pageIndex, typeName) {
+
+    for (var lyIndex = 0; lyIndex < curPageLys.layers.length; lyIndex++) {
+        curLy = curPageLys.layers[lyIndex];
+
+        if (curLy.kind != LayerKind.TEXT) {
+            if (keyMap[curLy.name] >= 0) {
+                keyMap[curLy.name] = keyMap[curLy.name] + 1;
+            } else {
+                keyMap[curLy.name] = 0;
+                repeatMap[curLy.name] = [];
+            }
+            var repeatName = curLy.name + "#" + keyMap[curLy.name];
+            repeatMap[curLy.name].push(repeatName);
+        }
+
+        var zIndex = curPageLys.layers.length - lyIndex;
+
+        if (curLy.kind == LayerKind.TEXT) {
+            var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/m1/" + "text_" + textIndex + "#0";
+            var rect = getLayerRect(curLy);
+            var prop = getTextProp(curLy);
+            var jsonStr = "{" + "\"" + "config" + "\"" + ":{" + "\"" + "rect" + "\"" + ":[" + rect + "]";
+            jsonStr += ",";
+            jsonStr += "\"color\":\"" + curLy.textItem.color.rgb.hexValue + "\"";
+            jsonStr += ",";
+            // jsonStr += "\"font\":\"" + layer.textItem.font + "\"";
+            // jsonStr += ",";
+            jsonStr += "\"font\":\"" + prop.font + "\"";
+            jsonStr += ",";
+            // jsonStr += "\"content\":\"" + base64encode(layer.textItem.contents) + "\"";
+            // jsonStr += ",";
+            jsonStr += "\"content\":\"" + base64encode(prop.contents) + "\"";
+            jsonStr += ",";
+            jsonStr += "\"fontSize\":" + Math.round(prop.textSize * 0.9);
+            jsonStr += ",";
+            jsonStr += "\"lineHeight\":" + prop.leading;
+            jsonStr += ",";
+            jsonStr += "\"rotate\":" + getActiveLayerRotation(curLy);
+            // $.writeln("测试: " + layer.name + ",,,," + jsonStr + ",,,,," + rt);
+            jsonStr += ",";
+            jsonStr += "\"zIndex\":" + zIndex;
+            jsonStr += "}}";
+            exportJson(dir, "config.json", jsonStr);
+            curLy.visible = false;
+            textIndex++;
+        } else {
+            var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/m1/" + curLy.name + "#" + keyMap[curLy.name];
+            var rect = getLayerRect(curLy);
+            var jsonStr = "{" + "\"" + "config" + "\"" + ":{" + "\"" + "rect" + "\"" + ":[" + rect + "]";
+            jsonStr += ",";
+            jsonStr += "\"zIndex\":" + zIndex;
+            jsonStr += "}}";
+            exportJson(dir, "config.json", jsonStr)
+
+            // exportOneLayer(curLy, dir, curLy.name + ".png", true);
+
+            exportOneLayer(curLy, dir, "zc.png");
+            scaleExport(dir, "zc.png", dir, "icon.png", 200);
+        }
+    }
+}
+
 
 function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, maskIndex, typeName) {
     for (var lyIndex = 0; lyIndex < curMaskLys.layers.length; lyIndex++) {
