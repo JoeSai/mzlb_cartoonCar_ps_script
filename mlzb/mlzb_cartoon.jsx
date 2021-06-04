@@ -223,7 +223,11 @@ function exportOneCover(curPageLys, textIndex, keyMap, repeatMap, pageIndex, typ
             // exportOneLayer(curLy, dir, curLy.name + ".png", true);
 
             exportOneLayer(curLy, dir, "zc.png");
-            scaleExport(dir, "zc.png", dir, "icon.png", 200);
+              if (curLy.name.indexOf("background")) {
+                scaleExport_bg(dir, "zc.png", dir, "icon.png", 153);
+            } else {
+                scaleExport(dir, "zc.png", dir, "icon.png", 200);
+            }
         }
     }
 }
@@ -309,7 +313,12 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             // exportOneLayer(curLy, dir, curLy.name + ".png", true);
 
             exportOneLayer(curLy, dir, "zc.png");
-            scaleExport(dir, "zc.png", dir, "icon.png", 200);
+            if (curLy.name.indexOf("background")) {
+                scaleExport_bg(dir, "zc.png", dir, "icon.png", 153);
+            } else {
+                scaleExport(dir, "zc.png", dir, "icon.png", 200);
+            }
+
         }
     }
 }
@@ -502,6 +511,22 @@ function scaleExport(inPath, inName, outPath, outName, maxSideLength) {
     var height = app.activeDocument.height.as("px");
 
     var scale = maxSideLength / Math.max(width, height);
+    var uWidth = UnitValue(Math.round(scale * width) + " px");
+    var uHeight = UnitValue(Math.round(scale * height) + " px");
+
+    app.activeDocument.resizeImage(uWidth, uHeight);
+    exportDocument(outPath, outName);
+    app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+}
+
+/** 导出一个元素 */
+function scaleExport_bg(inPath, inName, outPath, outName, maxSideLength) {
+    app.load(new File(inPath + "/" + inName))
+    var width = app.activeDocument.width.as("px");
+    var height = app.activeDocument.height.as("px");
+
+    var scale = maxSideLength / width,
+        height;
     var uWidth = UnitValue(Math.round(scale * width) + " px");
     var uHeight = UnitValue(Math.round(scale * height) + " px");
 
