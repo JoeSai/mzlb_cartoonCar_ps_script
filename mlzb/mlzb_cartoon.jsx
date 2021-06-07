@@ -2,12 +2,13 @@
     layerSetsType: {
         indexPage: "封面",
         endPage: "封底",
-        mainPage: "正文"
+        mainPage: "正文",
+        formatPpage: "版式",
     },
 }
 /** 输出基础路径 */
 const OUT_PUT_BASE_DIR_NAME = "cartoonCard";
-var mainPageLys, indexPageLys, endPageLys;
+var mainPageLys, indexPageLys, endPageLys, formatPpageLys;
 
 if (confirm("export ?")) {
     main();
@@ -45,19 +46,26 @@ function exportTemplate(document) {
                 endPageLys = allLys[i];
                 endPageLys && (endPageLys.visible = false);
                 break;
+            case CONFIG.layerSetsType.formatPpage:
+                formatPpageLys = allLys[i];
+                formatPpageLys && (formatPpageLys.visible = false);
+                break;
             default:
                 break;
         }
     }
 
     if (confirm("导出封面 ?")) {
-        exportPage(indexPageLys, "index");
+        exportPage(indexPageLys, "cover");
     }
     if (confirm("导出正文 ?")) {
-        exportPage(mainPageLys, "main");
+        exportPage(mainPageLys, "content");
+    }
+    if (confirm("导出版式 ?")) {
+        exportPage(formatPpageLys, "format");
     }
     if (confirm("导出封底 ?")) {
-        exportPage(endPageLys, "end");
+        exportPage(endPageLys, "backcover");
     }
 }
 
@@ -77,7 +85,7 @@ function exportPage(mainPageLys, typeName) {
         alert("每页需要一个单独的图层组！");
         return;
     }
-    if (typeName == "main") {
+    if (typeName == "content" || typeName == "format") {
         hideLayer(pageLys);
 
         for (var pageIndex = 0; pageIndex < pageLys.length; pageIndex++) {
@@ -223,7 +231,7 @@ function exportOneCover(curPageLys, textIndex, keyMap, repeatMap, pageIndex, typ
             // exportOneLayer(curLy, dir, curLy.name + ".png", true);
 
             exportOneLayer(curLy, dir, "zc.png");
-              if (curLy.name.indexOf("background")) {
+            if (curLy.name.indexOf("background") != -1) {
                 scaleExport_bg(dir, "zc.png", dir, "icon.png", 153);
             } else {
                 scaleExport(dir, "zc.png", dir, "icon.png", 200);
@@ -313,7 +321,7 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             // exportOneLayer(curLy, dir, curLy.name + ".png", true);
 
             exportOneLayer(curLy, dir, "zc.png");
-            if (curLy.name.indexOf("background")) {
+            if (curLy.name.indexOf("background") != -1) {
                 scaleExport_bg(dir, "zc.png", dir, "icon.png", 153);
             } else {
                 scaleExport(dir, "zc.png", dir, "icon.png", 200);
