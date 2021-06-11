@@ -264,7 +264,12 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             var prop = getTextProp(curLy);
             var jsonStr = "{" + "\"" + "config" + "\"" + ":{" + "\"" + "rect" + "\"" + ":[" + rect + "]";
             jsonStr += ",";
-            jsonStr += "\"color\":\"" + curLy.textItem.color.rgb.hexValue + "\"";
+            try {
+                jsonStr += "\"color\":\"" + curLy.textItem.color.rgb.hexValue + "\"";
+            } catch (x_x) {
+                jsonStr += "\"color\":\"000000\"";
+
+            }
             jsonStr += ",";
             // jsonStr += "\"font\":\"" + layer.textItem.font + "\"";
             // jsonStr += ",";
