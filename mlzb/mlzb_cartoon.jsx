@@ -71,7 +71,7 @@ function exportTemplate(document) {
 
 
 function exportPage(mainPageLys, typeName) {
-    $.writeln("正文组", mainPageLys);
+    // $.writeln("正文组", mainPageLys);
     if (!mainPageLys) {
         return;
     }
@@ -297,12 +297,12 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/mask";
             var rect = getLayerRect(curLy);
 
-            exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png" , true);
 
             app.doAction("导出选中图", "MLZB.atn");
-            exportOneLayer(curLy, dir, "select_" + maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, "select_" + maskBlockIndex + ".png" , true);
             app.doAction("导出未选中图", "MLZB.atn");
-            exportOneLayer(curLy, dir, "unselect_" + maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, "unselect_" + maskBlockIndex + ".png" , true);
 
             app.doAction("描边", "MLZB.atn");
 
@@ -310,7 +310,7 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
                 maskBlockJson += ",";
             }
 
-            exportOneLayer(curLy, dir, maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, maskBlockIndex + ".png" , true);
 
             maskBlockJson = maskBlockJson + "\"" + maskBlockIndex + "\"" + ":{" + "\"" + "rect" + "\"" + ":[" + rect + "]}";
             maskBlockIndex++;
