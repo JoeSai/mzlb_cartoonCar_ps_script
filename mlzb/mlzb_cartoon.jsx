@@ -15,6 +15,11 @@ if (confirm("export ?")) {
 }
 
 function main() {
+    var resolution = app.activeDocument.resolution;
+    if(resolution != 72){
+        alert("分辨率不为72");
+        return;
+    }
     app.bringToFront();
     if (!documents.length) {
         alert("ps没有打开文档");
@@ -297,12 +302,12 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
             var dir = outputDir() + typeName + "_" + (pageIndex + 1) + "/mask";
             var rect = getLayerRect(curLy);
 
-            exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, "white_" + maskBlockIndex + ".png", false , true);
 
             app.doAction("导出选中图", "MLZB.atn");
-            exportOneLayer(curLy, dir, "select_" + maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, "select_" + maskBlockIndex + ".png", false , true);
             app.doAction("导出未选中图", "MLZB.atn");
-            exportOneLayer(curLy, dir, "unselect_" + maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, "unselect_" + maskBlockIndex + ".png", false , true);
 
             app.doAction("描边", "MLZB.atn");
 
@@ -310,7 +315,7 @@ function exportOneMask(curMaskLys, keyMap, repeatMap, textIndex, pageIndex, mask
                 maskBlockJson += ",";
             }
 
-            exportOneLayer(curLy, dir, maskBlockIndex + ".png");
+            exportOneLayer(curLy, dir, maskBlockIndex + ".png", false , true);
 
             maskBlockJson = maskBlockJson + "\"" + maskBlockIndex + "\"" + ":{" + "\"" + "rect" + "\"" + ":[" + rect + "]}";
             maskBlockIndex++;
@@ -556,7 +561,7 @@ function scaleExport_bg(inPath, inName, outPath, outName, maxSideLength) {
 // }
 
 /** 导出一个图层 */
-function exportOneLayer(layer, outputDir, strOutputFile, hasRect) {
+function exportOneLayer(layer, outputDir, strOutputFile, hasRect, crop) {
     layer.visible = true;
 
     // var rect = getLayerRect(layer);
@@ -564,16 +569,22 @@ function exportOneLayer(layer, outputDir, strOutputFile, hasRect) {
     // var offsetY = -rect[1];
     layer.translate(0, 0);
     if (outputDir) {
-        exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer, hasRect) : getLayerRect(layer));
+        exportDocument(outputDir, strOutputFile, hasRect ? getLayerRect(layer, hasRect) : getLayerRect(layer) ,crop);
     } else {
-        exportDocument(outputDir(), strOutputFile, hasRect ? getLayerRect(layer, hasRect) : getLayerRect(layer));
+        exportDocument(outputDir(), strOutputFile, hasRect ? getLayerRect(layer, hasRect) : getLayerRect(layer) , crop);
     }
 
     layer.visible = false;
 }
 
+// function cropExport(inPath, inName, outPath, outName){
+//     app.load(new File(inPath + inName));
+//     exportDocument(outPath, outName, false , true);
+//     app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
+// }
+
 /** 导出当前显示的图像到png文件 */
-function exportDocument(strOutputPath, strOutputFile, rect) {
+function exportDocument(strOutputPath, strOutputFile, rect, crop) {
     //定义一个变量[document]，用来表示Photoshop当前的活动文档。
     var doc = app.activeDocument;
     // 创建输出路径
@@ -599,12 +610,14 @@ function exportDocument(strOutputPath, strOutputFile, rect) {
     //定义一个变量[extensionType]，用来指定图片名称的后缀为小写的.png。
     var extensionType = Extension.LOWERCASE;
 
-    if (rect) {
+
+    if (crop) {
+        doc.trim(TrimType.TRANSPARENT, true, true, true, true);
+    } else if (rect) {
         doc.crop(rect);
-        // doc.trim(TrimType.TRANSPARENT, true, true, true, true);
     }
     doc.saveAs(pngFile, options, asCopy, extensionType);
-    if (rect) {
+    if (rect || crop) {
         app.activeDocument.activeHistoryState = app.activeDocument.historyStates[app.activeDocument.historyStates.length - 2];
     }
     pngFile.close();
